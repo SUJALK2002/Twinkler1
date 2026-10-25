@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { ArrowDown, Menu, X } from 'lucide-react'
+import logo from '../assets/logo.jpeg'
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
@@ -14,7 +15,7 @@ export default function Navbar() {
       <div className="nav-wrap container">
         <Link to="/" className="brand" onClick={close} aria-label="Tomorrow's Tinkers home">
           
-          <img src="src/assets/logo.jpeg" alt="Tomorrow's Tinkers logo" className="brand-logo rounded-xl shadow-sm" height="70" width="70" />
+          <img src={logo} alt="Tomorrow's Tinkers logo" className="brand-logo rounded-xl shadow-sm" height="70" width="70" />
           <span className="brand-copy"><strong>Tomorrow's <em>Tinkers</em></strong><small>ROBOTICS FOR SCHOOLS</small></span>
         </Link>
         <button className="menu-toggle" onClick={() => setOpen(!open)} aria-label={open ? 'Close menu' : 'Open menu'}>
