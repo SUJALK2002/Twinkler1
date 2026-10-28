@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { ArrowDown, Menu, X } from 'lucide-react'
-import logo from '../assets/logo.jpeg'
+import logo from '../assets/logo.png'
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
@@ -39,7 +39,7 @@ export default function Navbar() {
             </button>
             {loginOpen && (
               <div className="login-menu" role="menu">
-                <Link to="/login/admin" role="menuitem" onClick={close}>Admin Login</Link>
+                <Link to="/admin/login" role="menuitem" onClick={close}>Admin Login</Link>
                 <Link to="/login/school" role="menuitem" onClick={close}>School Login</Link>
               </div>
             )}

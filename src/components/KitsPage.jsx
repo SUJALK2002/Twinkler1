@@ -1,177 +1,137 @@
-import { useState } from 'react'
+import { ArrowDownRight, ArrowRight, BookOpen, Cog, GraduationCap, Lightbulb, Rocket, Users, Wrench, Zap } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, BookOpen, CircuitBoard, GraduationCap, Layers3, Lightbulb, MoveRight, Wrench } from 'lucide-react'
+import { roboticsKits } from '../data/roboticsKits.js'
+import KitVisual from './KitVisual.jsx'
 
-const topics = [
-  { id: 'kit', label: 'Kit information', icon: Wrench },
-  { id: 'student', label: 'Student training', icon: Lightbulb },
-  { id: 'teacher', label: 'Teacher training', icon: GraduationCap },
-  { id: 'lms', label: 'LMS access', icon: Layers3 },
+const cardFeatures = [
+  ['LEDs', Lightbulb],
+  ['Switches', Zap],
+  ['Hands-on builds', Wrench],
 ]
 
-const kits = [
-  {
-    number: '01',
-    name: 'Tinker Starter',
-    level: 'FOUNDATION',
-    color: 'orange',
-    icon: Wrench,
-    summary: 'A first step into circuits, components and creative problem-solving.',
-    details: {
-      kit: 'A classroom-ready introduction to core electronic components, basic circuits and entry-level sensors. Guided build activities help students learn how parts connect and how small changes affect a project.',
-      student: 'Students follow a scaffolded sequence: identify components, assemble a simple circuit, test what it does, then make a small improvement. The focus is safe handling, observation and learning through iteration.',
-      teacher: 'Teachers receive lesson guidance, component orientation and practical facilitation tips. The training models how to introduce a build, support different learners and guide students when a first attempt does not work.',
-      lms: 'Digital resources organize the learning sequence and supporting lesson materials in one place. Teachers can revisit instructions and use the project pathway to keep classroom activities structured.',
-    },
-  },
-  {
-    number: '02',
-    name: 'Smart Sensors',
-    level: 'SENSING & INPUT',
-    color: 'blue',
-    icon: CircuitBoard,
-    summary: 'Explore how robots sense, interpret and respond to their surroundings.',
-    details: {
-      kit: 'A sensor-focused set for exploring how inputs such as light, distance or environmental changes can be detected. Students connect sensor readings to a response and investigate how different conditions affect results.',
-      student: 'Learners observe sensor behavior, compare readings, set simple thresholds and build a project that responds to its environment. Activities encourage prediction, testing and explaining evidence.',
-      teacher: 'Teacher sessions cover sensor concepts, setup, troubleshooting and question-led instruction. Lesson notes help connect hands-on testing with the underlying ideas of input, data and response.',
-      lms: 'The LMS provides a place for digital project guides and supporting resources. Students can follow the activity sequence while teachers keep reference materials alongside the program.',
-    },
-  },
-  {
-    number: '03',
-    name: 'Robotics & Motion',
-    level: 'MOVEMENT & CONTROL',
-    color: 'green',
-    icon: MoveRight,
-    summary: 'Bring code, motors and mechanisms together to make ideas move.',
-    details: {
-      kit: 'A practical collection for exploring movement and control with robotic builds. Students investigate how motors and mechanisms work together and how a sequence of instructions can guide motion.',
-      student: 'Students assemble and control a moving build, then refine its behavior through step-by-step testing. Challenges introduce sequencing, direction, timing and the value of debugging.',
-      teacher: 'Training gives teachers time to assemble and run the activities themselves. It covers classroom setup, common build issues and ways to help students debug without taking over their work.',
-      lms: 'Digital lesson materials support each stage from first assembly to extension challenge. The LMS helps teachers access the project pathway and revisit learning resources during the program.',
-    },
-  },
-  {
-    number: '04',
-    name: 'Connected Creators',
-    level: 'SMART PROJECTS',
-    color: 'purple',
-    icon: BookOpen,
-    summary: 'Combine making and connected technology in open-ended projects.',
-    details: {
-      kit: 'A project pathway for learners ready to combine electronics, coding and connected-device concepts. Activities build on foundational skills and encourage students to plan a purposeful solution.',
-      student: 'Learners plan a project, connect its components, test how it behaves and communicate how it works. Open-ended prompts encourage design choices, collaboration and thoughtful iteration.',
-      teacher: 'Teacher enablement focuses on guiding project planning, supporting collaborative builds and helping students explain their design decisions. Extension ideas help adapt activities to class readiness.',
-      lms: 'The LMS brings project references and program materials together so teachers can guide the learning journey. Digital resources support preparation, in-class facilitation and continued exploration.',
-    },
-  },
+const journey = [
+  { classes: 'Classes 1 – 3', title: 'Explore & Discover', text: 'Learn basic electronics, circuits and hands-on building.', icon: Lightbulb, color: 'orange' },
+  { classes: 'Classes 4 – 6', title: 'Build & Program', text: 'Work with sensors, motors and start coding simple projects.', icon: Cog, color: 'peach' },
+  { classes: 'Classes 7 – 9', title: 'Engineer & Innovate', text: 'Design advanced robots, automation and real-world solutions.', icon: Rocket, color: 'blue' },
 ]
+
+const schoolBenefits = [
+  { title: 'Curriculum Aligned', text: 'Designed for school learning needs across classes 1–9.', icon: GraduationCap },
+  { title: 'Hands-on Projects', text: 'Build, experiment and solve real problems.', icon: Users },
+  { title: 'Skill Development', text: 'Build creativity, logic and technical skills.', icon: BarChartIcon },
+  { title: 'Teacher Support', text: 'Ready-to-teach resources and guidance.', icon: Lightbulb },
+]
+
+function BarChartIcon(props) {
+  return <span className="kit-bars-icon" aria-hidden="true"><i /><i /><i /></span>
+}
+
+function RobotHero() {
+  return (
+    <div className="catalogue-hero-art" aria-label="Friendly robot illustration">
+      <div className="catalogue-note">Small ideas.<br />Big possibilities.</div>
+      <span className="catalogue-spark">✳</span>
+      <div className="catalogue-robot">
+        <span className="catalogue-antenna" />
+        <span className="catalogue-robot-ear left" />
+        <span className="catalogue-robot-ear right" />
+        <span className="catalogue-robot-face"><i /><i /><b /></span>
+        <span className="catalogue-robot-body"><i /><i /></span>
+        <span className="catalogue-robot-feet" />
+      </div>
+      <div className="catalogue-checklist"><span>✓ Practical Projects</span><span>✓ Real-world Skills</span><span>✓ Curriculum Aligned</span></div>
+    </div>
+  )
+}
 
 export default function KitsPage() {
-  const [flippedKit, setFlippedKit] = useState(null)
-  const [activeTopics, setActiveTopics] = useState({})
-
-  function flipKit(number) {
-    setFlippedKit(current => current === number ? null : number)
-  }
-
-  function handleCardKeyDown(event, number) {
-    if (event.target !== event.currentTarget) return
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      flipKit(number)
-    }
-  }
-
   return (
-    <main>
-      <section className="inner-hero section-cream">
-        <div className="container">
-          <span className="eyebrow">HANDS-ON ROBOTICS FOR SCHOOLS</span>
-          <h1>Choose a kit. <span className="text-orange">Start building.</span></h1>
-          <p>Explore four learning pathways. Flip any kit to see what students, teachers and schools can expect from the program.</p>
+    <main className="robotics-catalogue">
+      <section className="catalogue-hero">
+        <div className="container catalogue-hero-inner">
+          <div className="catalogue-hero-copy">
+            <span className="catalogue-eyebrow">BUILD · LEARN · CREATE</span>
+            <h1>Explore Robotics Kits</h1>
+            <p>Class-wise hands-on kits designed for a progressive learning journey from first circuits to advanced robotics.</p>
+            <div className="catalogue-points">
+              <span><Lightbulb /> Hands-on Learning</span>
+              <span><BarChartIcon /> Age-Appropriate Curriculum</span>
+              <span><Zap /> Build Real-World Skills</span>
+            </div>
+          </div>
+          <RobotHero />
         </div>
       </section>
-      <section className="section section-white demo-kits-section" id="demo-kits">
+
+      <section className="catalogue-cards-section" aria-label="Robotics kits by class">
         <div className="container">
-          <div className="section-heading">
-            <span className="eyebrow">FOUR WAYS TO GET TINKERING</span>
-            <h2>Demo kits for <span className="text-orange">curious minds.</span></h2>
-            <p>Each pathway brings kit activities together with student learning, teacher enablement and digital resources.</p>
-          </div>
-          <div className="demo-kit-grid">
-            {kits.map(kit => {
-              const Icon = kit.icon
-              const topic = activeTopics[kit.number] || 'kit'
-              const isFlipped = flippedKit === kit.number
-              const topicInfo = topics.find(item => item.id === topic)
-              const TopicIcon = topicInfo.icon
-              return (
-                <article
-                  className={`demo-kit-card kit-${kit.color}${isFlipped ? ' is-flipped' : ''}`}
-                  key={kit.number}
-                  tabIndex={0}
-                  role="group"
-                  aria-label={`${kit.name} interactive demo kit`}
-                  aria-expanded={isFlipped}
-                  onClick={() => flipKit(kit.number)}
-                  onKeyDown={event => handleCardKeyDown(event, kit.number)}
-                >
-                  <div className="demo-kit-card-inner">
-                    <div className="demo-kit-face demo-kit-front">
-                      <div className="demo-kit-topline">
-                        <span className={`demo-kit-icon icon-${kit.color}`}><Icon size={24} /></span>
-                        <span className="demo-kit-number">{kit.number}</span>
-                      </div>
-                      <span className="demo-kit-level">{kit.level}</span>
-                      <h3>{kit.name}</h3>
-                      <p>{kit.summary}</p>
-                      <span className="demo-kit-flip-hint">Explore this kit <ArrowRight size={16} /></span>
-                    </div>
-                    <div className="demo-kit-face demo-kit-back">
-                      <button className="demo-kit-back-button" type="button" onClick={event => { event.stopPropagation(); flipKit(kit.number) }}>
-                        <ArrowLeft size={15} /> Back to kit
-                      </button>
-                      <span className="demo-kit-level">{kit.level}</span>
-                      <h3>{kit.name}</h3>
-                      <div className="demo-kit-tabs" role="tablist" aria-label={`${kit.name} information`}>
-                        {topics.map(item => {
-                          const TabIcon = item.icon
-                          return (
-                            <button
-                              className={topic === item.id ? 'demo-kit-tab active' : 'demo-kit-tab'}
-                              key={item.id}
-                              type="button"
-                              role="tab"
-                              aria-selected={topic === item.id}
-                              onClick={event => {
-                                event.stopPropagation()
-                                setActiveTopics(current => ({ ...current, [kit.number]: item.id }))
-                              }}
-                            >
-                              <TabIcon size={14} /><span>{item.label}</span>
-                            </button>
-                          )
-                        })}
-                      </div>
-                      <div className="demo-kit-detail" role="tabpanel">
-                        <span className={`demo-kit-detail-icon icon-${kit.color}`}><TopicIcon size={18} /></span>
-                        <p>{kit.details[topic]}</p>
-                      </div>
-                      <Link className="demo-kit-contact" to="/contact" onClick={event => event.stopPropagation()}>
-                        Ask about this kit <ArrowRight size={15} />
-                      </Link>
-                    </div>
+          <div className="catalogue-grid">
+            {roboticsKits.map(kit => (
+              <article className={`catalogue-card catalogue-${kit.color}`} key={kit.id}>
+                <div className="catalogue-card-heading">
+                  <span className="catalogue-class"><small>CLASS</small><strong>{kit.classNumber}</strong></span>
+                  <div className="catalogue-card-title"><h2>{kit.name}</h2><p>{kit.short}</p></div>
+                  <Link className="catalogue-card-arrow" to={`/kits/${kit.id}`} aria-label={`Explore ${kit.name}`}><ArrowRight /></Link>
+                </div>
+                <div className="catalogue-card-bottom">
+                  <div className="catalogue-card-features">
+                    {cardFeatures.map(([label, Icon]) => <span key={label}><Icon />{label}</span>)}
                   </div>
-                </article>
-              )
+                  <KitVisual variant={kit.image} className="catalogue-product-visual" />
+                  <Link className="catalogue-explore" to={`/kits/${kit.id}`}>Explore this kit <ArrowRight /></Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="catalogue-journey">
+        <div className="container catalogue-panel">
+          <h2>A Learning Journey from Class 1 to 9</h2>
+          <p>Each kit builds on the previous one, helping students develop skills step by step.</p>
+          <div className="journey-cards">
+            {journey.map((step, index) => {
+              const Icon = step.icon
+              return <div className={`journey-card journey-${step.color}`} key={step.classes}>
+                <span className="journey-icon"><Icon /></span>
+                <div><strong>{step.classes}</strong><h3>{step.title}</h3><p>{step.text}</p></div>
+                {index < journey.length - 1 && <ArrowRight className="journey-link-arrow" />}
+              </div>
             })}
           </div>
-          <div className="project-end-cta">
-            <h2>Want to see the program in action?</h2>
-            <p>Talk with our team about a demo for your school.</p>
-            <Link to="/contact" className="button button-primary">Contact us <ArrowRight size={17} /></Link>
+        </div>
+      </section>
+
+      <section className="catalogue-benefits">
+        <div className="container catalogue-panel">
+          <h2>Why Schools Choose Our Robotics Kits</h2>
+          <div className="school-benefit-grid">
+            {schoolBenefits.map(({ title, text, icon: Icon }) => <article className="school-benefit" key={title}>
+              <span className="benefit-icon"><Icon /></span><div><h3>{title}</h3><p>{text}</p></div>
+            </article>)}
+          </div>
+        </div>
+      </section>
+
+      <section className="catalogue-cta-section">
+        <div className="container">
+          <div className="catalogue-cta">
+            <div>
+              <h2>Bring Robotics to Your School</h2>
+              <p>Empower your students with hands-on learning and real-world skills.</p>
+              <div className="catalogue-cta-actions">
+                <Link to="/contact" className="catalogue-explore">Request School Demo <ArrowRight /></Link>
+                <a className="catalogue-download" href="mailto:sujalkalamkar2213@gmail.com?subject=Robotics%20kit%20brochure%20request"><BookOpen /> Request Kit Brochure</a>
+              </div>
+            </div>
+            <div className="school-illustration" aria-hidden="true">
+              <span className="school-cloud cloud-one" /><span className="school-cloud cloud-two" />
+              <div className="school-tree tree-left" /><div className="school-tree tree-right" />
+              <div className="school-building"><i /><i /><i /><i /><b /></div>
+              <span className="school-caption">Let’s build<br />a brighter tomorrow<br />together.</span>
+              <ArrowDownRight className="school-doodle" />
+            </div>
           </div>
         </div>
       </section>

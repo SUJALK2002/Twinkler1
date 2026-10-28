@@ -15,7 +15,7 @@ export default function LoginPage({ role }) {
         </section>
         <section className="section section-white">
           <div className="container login-choice-grid">
-            <Link className="login-choice-card" to="/login/admin">
+            <Link className="login-choice-card" to="/admin/login">
               <ShieldCheck size={30} />
               <h2>Admin Login</h2>
               <p>Continue to the administrator sign-in screen.</p>

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight, ArrowUpRight, Bot, Check, ChevronDown, CircuitBoard, Code2, GraduationCap, Lightbulb, MoveRight, Puzzle, Sparkles, Users, Wrench, BookOpen, Cpu, School, Layers3, MessageCircle, Zap, Target, Radar } from 'lucide-react'
@@ -8,9 +8,12 @@ import ProjectCard from './components/ProjectCard.jsx'
 import LeadForm from './components/LeadForm.jsx'
 import AboutPage from './components/AboutPage.jsx'
 import KitsPage from './components/KitsPage.jsx'
+import KitDetailPage from './components/KitDetailPage.jsx'
 import LoginPage from './components/LoginPage.jsx'
 import TrainingVideoPage from './components/TrainingVideoPage.jsx'
 import { projects } from './data/projects.js'
+
+const AdminApp = lazy(() => import('./admin/AdminApp.jsx'))
 
 const fadeUp = { hidden: { opacity: 0, y: 22 }, visible: { opacity: 1, y: 0 } }
 function Reveal({ children, className = '' }) {
@@ -32,19 +35,74 @@ function HeroArt() {
   </div>
 }
 function Home() {
+  const [publishedContent, setPublishedContent] = useState(null)
   const featured = projects.filter(p => [1, 2, 3].includes(p.level)).filter((p, i) => [0, 1, 6, 7, 10, 11].includes(projects.indexOf(p)))
-  const faqs = [
+  const defaultFaqs = [
     ['Do schools need prior robotics experience?', 'The program is designed to help schools get started with a structured curriculum and teacher training. We can discuss your school’s starting point during the demo.'],
     ['What is included in the program?', 'The package brings together robotics kits, an 8–9 month student learning program, teacher training and LMS access.'],
     ['How does the school get started?', 'Start with a free 40-minute demo at your school, explore a pilot with one class, and then consider a wider rollout.'],
     ['Which projects can students build?', 'Projects range from sensor-based builds and traffic signal timers to line-following robots, Bluetooth-controlled cars and weather stations.']
   ]
+  const faqs = publishedContent?.faq?.length
+    ? publishedContent.faq.map(({ question, answer }) => [question, answer])
+    : defaultFaqs
+  const heroTitle = publishedContent?.heroTitle || "Don't just teach technology. Let them build it."
+  const titleSplit = heroTitle.lastIndexOf('. ')
+  const heroTitleFirst = titleSplit > -1 ? heroTitle.slice(0, titleSplit + 1) : heroTitle
+  const heroTitleSecond = titleSplit > -1 ? heroTitle.slice(titleSplit + 2) : ''
+  const ctaLink = publishedContent?.ctaLink?.startsWith('/') && !publishedContent.ctaLink.startsWith('//')
+    ? publishedContent.ctaLink
+    : '/contact'
+
+  useEffect(() => {
+    let active = true
+    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+      try {
+        const localDraft = localStorage.getItem('tt-admin-website-content')
+        const parsed = localDraft ? JSON.parse(localDraft) : null
+        if (parsed?.status === 'published') setPublishedContent(parsed.content || parsed)
+      } catch (error) {
+        console.error('Unable to restore locally published website content:', error)
+      }
+      return () => {
+        active = false
+      }
+    }
+
+    import('./lib/supabase.js')
+      .then(({ supabase }) => {
+        if (!supabase) return null
+        return supabase
+          .from('website_content')
+          .select('content')
+          .eq('status', 'published')
+          .order('published_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      })
+      .then((result) => {
+        if (!active || !result) return
+        if (result.error) {
+          console.error('Unable to load published website content:', result.error.message)
+          return
+        }
+        if (result.data?.content) setPublishedContent(result.data.content)
+      })
+      .catch((error) => {
+        if (active) console.error('Unable to load published website content:', error)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
   return <>
     <section className="hero section-cream"><div className="container hero-grid"><div className="hero-copy">
       <div className="hero-pill"><span className="pulse-dot"></span> ROBOTICS EDUCATION, REIMAGINED</div>
-      <h1>Don't just teach technology. <span>Let them build it.</span></h1>
-      <p className="hero-subtitle">Give students the confidence to turn curiosity into creation—with hands-on robotics, a ready-to-run curriculum and teachers who feel ready to lead.</p>
-      <div className="hero-actions"><Link to="/contact" className="button button-primary">Book a free demo <ArrowUpRight size={18} /></Link><Link to="/kits#demo-kits" className="button button-secondary">Explore kits <ArrowRight size={17} /></Link></div>
+      <h1>{heroTitleFirst} {heroTitleSecond && <span>{heroTitleSecond}</span>}</h1>
+      <p className="hero-subtitle">{publishedContent?.heroSubtitle || 'Give students the confidence to turn curiosity into creation—with hands-on robotics, a ready-to-run curriculum and teachers who feel ready to lead.'}</p>
+      {publishedContent?.heroDescription && <p className="hero-subtitle hero-description">{publishedContent.heroDescription}</p>}
+      <div className="hero-actions"><Link to={ctaLink} className="button button-primary">{publishedContent?.ctaText || 'Book a free demo'} <ArrowUpRight size={18} /></Link><Link to="/kits#demo-kits" className="button button-secondary">Explore kits <ArrowRight size={17} /></Link></div>
       <div className="hero-proof"><div className="proof-avatars"><span><Bot size={16} /></span><span><Lightbulb size={16} /></span><span><Code2 size={16} /></span></div><p><strong>Build · Learn · Create</strong><br />A complete school robotics program</p></div>
     </div><HeroArt /></div><div className="hero-bottom container"><span>MADE FOR CURIOUS MINDS</span><div><i></i> Hands-on learning <i></i> Real-world projects <i></i> Future-ready skills</div></div></section>
     <section className="value-strip"><div className="container value-strip-inner"><p>Everything your school needs to bring robotics to life.</p><div><span><Check size={16} /> Robotics kits</span><span><Check size={16} /> Student training</span><span><Check size={16} /> Teacher enablement</span><span><Check size={16} /> LMS access</span></div></div></section>
@@ -77,6 +135,8 @@ function WhatsAppContact() {
 }
 export default function App() {
   const location = useLocation()
+  const isAdminRoute = location.pathname.startsWith('/admin')
+
   useEffect(() => {
     if (location.hash) {
       document.querySelector(location.hash)?.scrollIntoView({ behavior: 'smooth' })
@@ -84,5 +144,27 @@ export default function App() {
     }
     window.scrollTo(0, 0)
   }, [location.pathname, location.hash])
-  return <><Navbar /><Routes><Route path="/" element={<Home />} /><Route path="/projects" element={<ProjectsPage />} /><Route path="/contact" element={<ContactPage />} /><Route path="/kits" element={<KitsPage />} /><Route path="/training-video" element={<TrainingVideoPage />} /><Route path="/about" element={<AboutPage />} /><Route path="/login" element={<LoginPage />} /><Route path="/login/admin" element={<LoginPage role="admin" />} /><Route path="/login/school" element={<LoginPage role="school" />} /><Route path="*" element={<main className="not-found"><h1>Page not found</h1><Link className="button button-primary" to="/">Back home</Link></main>} /></Routes><Footer /><WhatsAppContact /></>
+
+  if (isAdminRoute) {
+    return <Suspense fallback={<main className="not-found"><p>Loading admin workspace…</p></main>}><Routes><Route path="/admin/*" element={<AdminApp />} /></Routes></Suspense>
+  }
+
+  return <>
+    <Navbar />
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/projects" element={<ProjectsPage />} />
+      <Route path="/contact" element={<ContactPage />} />
+      <Route path="/kits" element={<KitsPage />} />
+      <Route path="/kits/:kitId" element={<KitDetailPage />} />
+      <Route path="/training-video" element={<TrainingVideoPage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/login/admin" element={<LoginPage role="admin" />} />
+      <Route path="/login/school" element={<LoginPage role="school" />} />
+      <Route path="*" element={<main className="not-found"><h1>Page not found</h1><Link className="button button-primary" to="/">Back home</Link></main>} />
+    </Routes>
+    <Footer />
+    <WhatsAppContact />
+  </>
 }

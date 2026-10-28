@@ -8,6 +8,11 @@ dist/
 # Vite cache
 .vite/
 
+# Test output
+coverage/
+playwright-report/
+test-results/
+
 # Logs
 *.log
 npm-debug.log*
@@ -16,6 +21,10 @@ pnpm-debug.log*
 
 # Local environment overrides
 *.local
+
+# Supabase CLI local state
+supabase/.branches/
+supabase/.temp/
 
 # Editor / OS files
 .vscode/*
